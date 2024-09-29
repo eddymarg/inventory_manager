@@ -1,9 +1,9 @@
 'use client'
 import Image from "next/image";
-import {useState, useEffect, useRef} from 'react'
-import {firestore} from '@/firebase'
-import {Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button} from '@mui/material'
-import {collection, query, getDocs, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore"
+import { useState, useEffect, useRef } from 'react'
+import { firestore, auth } from '@/firebase'
+import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button } from '@mui/material';
+import { collection, query, getDocs, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore"
 import { Camera } from "react-camera-pro"
 import Header from './components/Header';
 
@@ -42,11 +42,11 @@ export default function Home() {
     const docSnap = await getDoc(docRef)
 
     if(docSnap.exists()){
-      const {quantity} = docSnap.data()
+      const { quantity, ...existingData } = docSnap.data()
       if (quantity === 1) {
         await deleteDoc(docRef)
       } else {
-        await setDoc(docRef, {quantity: quantity - 1})
+        await setDoc(docRef, {quantity: quantity - 1, image: existingData.image }, { merge: true})
       }
     }
 
@@ -54,17 +54,31 @@ export default function Home() {
   }
 
   // helper function to add items
+  // asynchronous function that takes in item (name of item you wanna add) 
+  // and image (optional parameter for item image. defaults to null if not provided)
   const addItem = async (item, image = null) => {
+    // reference to document in Firestore
+    // collection(firestore, 'inventory') refers to inventory collection
+    // item is the document name within the collection/ item name
     const docRef = doc(collection(firestore, 'inventory'), item)
+    // getDoc(docRef) retrieves doc from firestore at reference docRef
+    // await is needed because Firestore is asynchronous and takes time so function should wait for data
     const docSnap = await getDoc(docRef)
 
     if(docSnap.exists()){
-      const { quantity } = docSnap.data()
-      await setDoc(docRef, { quantity: quantity + 1, image }, { merge: true})
+      // destructures data from docSnap.data(). separates quantity from rest of data
+      const { quantity, ...existingData } = docSnap.data()
+      // updates doc with new quantity and image
+      // quantity: quantity + 1 increments quantity
+      // image: image || existingData.image: if new image is given, use. if not use existing image. || ensures image field not lost during update
+      // merge: true tells firestore to merge new and existing data.
+      await setDoc(docRef, { quantity: quantity + 1, image: image || existingData.image }, { merge: true})
     } else {
+      // if item doesn't exist in database, new doc created with the parameters
       await setDoc(docRef, { quantity: 1, image })
     }
 
+    // after adding/updating, calls updateInventory() to refresh displayed inventory list
     await updateInventory()
   }
 

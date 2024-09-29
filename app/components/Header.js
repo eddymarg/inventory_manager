@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box} from '@mui/material'
+import { Box, Button, link } from '@mui/material'
 import GradientText from '../ui/gradient';
 
 const Header = () => {
@@ -21,6 +21,8 @@ const Header = () => {
             <GradientText>
                 Book Stock
             </GradientText>
+            {/* <Button variant="outlined" component={link} href="/login">Login</Button>
+            <Button variant="outlined" component={link} href="/signup">Sign Up</Button> */}
         </Box>
     )
 }
