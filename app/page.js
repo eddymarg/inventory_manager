@@ -5,6 +5,7 @@ import { firestore, auth } from '@/firebase'
 import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button } from '@mui/material';
 import { collection, query, getDocs, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore"
 import { Camera } from "react-camera-pro"
+import { getRecommendations } from "./api/recommendations"
 import Header from './components/Header';
 
 export default function Home() {
@@ -20,6 +21,7 @@ export default function Home() {
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success') // success, error, warning, info
+  const [recommendations, setRecommendations] = useState("")
  
   // need to be async, because if it blocks while fetching site freezes
   const updateInventory = async () => {
@@ -142,6 +144,18 @@ export default function Home() {
     if (reason === 'clickaway') return;
     setSnackbarOpen(false);
   }
+
+  const handleReccOpen = async () => {
+    try {
+      const response = await getRecommendations()
+      setRecommendations(response)
+      setOpen(true)
+    } catch (error) {
+      console.error("Error fetching recommendations:", error)
+    }
+  }
+
+  const handleReccClose = () => setOpen(false);
 
   return (
     <Box 
@@ -286,6 +300,11 @@ export default function Home() {
           </Stack>
         </Box>
       </Modal>
+      
+      {/* Recc modal open */}
+      <Modal open={open} onClose={handleReccClose}>
+
+      </Modal>
 
       {/* notification handling */}
       <Snackbar
@@ -341,6 +360,17 @@ export default function Home() {
             onClick={handleOpenPhotoModal}
           >
             Add Item by Photo
+          </Button>
+          <Button 
+            variant="contained" 
+            sx={{ 
+              backgroundColor: '#6C584C',
+              ':hover': {
+                backgroundColor: '#A98467',
+              }
+            }}
+            onClick={()=>{handleReccOpen()}}>
+            Get Book Recommendations
           </Button>
         </Stack>
       </Box>
