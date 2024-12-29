@@ -42,5 +42,5 @@ export async function POST(req) {
         },
     })
 
-    return new NextResponse(stream)
+    return new NextResponse(stream);
 }
