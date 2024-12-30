@@ -5,8 +5,8 @@ import { firestore, auth } from '@/firebase'
 import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button } from '@mui/material';
 import { collection, query, getDocs, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore"
 import { Camera } from "react-camera-pro"
-import { getRecommendations } from "./api/recommendations"
 import Header from './components/Header';
+import { getRecommendations } from "./api/openai";
 
 export default function Home() {
   const [inventory, setInventory] = useState([]) // sets inventory array
@@ -21,6 +21,7 @@ export default function Home() {
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success') // success, error, warning, info
+  const [openReccModal, setOpenReccModal] = useState(false);
   const [recommendations, setRecommendations] = useState("")
  
   // need to be async, because if it blocks while fetching site freezes
@@ -148,14 +149,15 @@ export default function Home() {
   const handleReccOpen = async () => {
     try {
       const response = await getRecommendations()
+      console.log("Book Recommendations:", recommendations)
       setRecommendations(response)
-      setOpen(true)
-    } catch (error) {
+      setOpenReccModal(true)
+    } catch(error) {
       console.error("Error fetching recommendations:", error)
     }
   }
 
-  const handleReccClose = () => setOpen(false);
+  const handleReccClose = () => setOpenReccModal(false)
 
   return (
     <Box 
@@ -300,10 +302,37 @@ export default function Home() {
           </Stack>
         </Box>
       </Modal>
-      
-      {/* Recc modal open */}
-      <Modal open={open} onClose={handleReccClose}>
 
+      {/* Recommendations Modal */}
+      <Modal open={openReccModal} onClose={handleReccClose}>
+        <Box 
+          position="absolute" 
+          top="50%" left="50%"
+          width={400}
+          bgcolor="white"
+          border="2px solid #000"
+          boxShadow={24}
+          p={4}
+          display="flex"
+          flexDirection="column"
+          gap={3}
+          sx={{
+            transform: 'translate(-50%,-50%)',
+          }}
+        >
+          <Typography variant="h6">Book Recommendations</Typography>
+          <Typography variant="body1" style={{ marginTop: "10px", whiteSpace: "pre-line" }}>
+            {recommendations}
+          </Typography>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleReccClose}
+            style={{ marginTop: "15px" }}
+          >
+            Close
+          </Button>
+        </Box>
       </Modal>
 
       {/* notification handling */}
@@ -369,7 +398,9 @@ export default function Home() {
                 backgroundColor: '#A98467',
               }
             }}
-            onClick={()=>{handleReccOpen()}}>
+            onClick={()=>{
+            handleReccOpen()
+          }}>
             Get Book Recommendations
           </Button>
         </Stack>
