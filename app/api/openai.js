@@ -21,7 +21,7 @@ export async function getRecommendations() {
   
     const bookTitles = querySnapshot.docs.map(doc => doc.id) // Assuming the field name is 'title'
 
-    console.log("Book Titles:", bookTitles)
+    // console.log("Book Titles:", bookTitles)
   
     if (!bookTitles || bookTitles.length === 0) {
       console.log("No books found in the database.")

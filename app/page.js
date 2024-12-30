@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { firestore, auth } from '@/firebase'
 import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button } from '@mui/material';
 import { collection, query, getDocs, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore"
+import { Dialog, DialogTitle, DialogContent, DialogActions} from "@mui/material"
 import { Camera } from "react-camera-pro"
 import Header from './components/Header';
 import { getRecommendations } from "./api/openai";
@@ -304,24 +305,20 @@ export default function Home() {
       </Modal>
 
       {/* Recommendations Modal */}
-      <Modal open={openReccModal} onClose={handleReccClose}>
-        <Box 
-          position="absolute" 
-          top="50%" left="50%"
-          width={400}
-          bgcolor="white"
-          border="2px solid #000"
-          boxShadow={24}
-          p={4}
-          display="flex"
-          flexDirection="column"
-          gap={3}
-          sx={{
-            transform: 'translate(-50%,-50%)',
-          }}
-        >
-          <Typography variant="h6">Book Recommendations</Typography>
-          <Typography variant="body1" style={{ marginTop: "10px", whiteSpace: "pre-line" }}>
+      <Dialog 
+        open={openReccModal} 
+        onClose={handleReccClose}
+        scroll="paper"
+        aria-labelledby="scroll-dialog-title"
+        aria-describedby="scroll-dialog-description"
+      >
+        <DialogTitle id="scroll-dialog-title">Book Recommendations</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body1" 
+            style={{ 
+              marginTop: "10px", 
+              whiteSpace: "pre-line",
+            }}>
             {recommendations}
           </Typography>
           <Button
@@ -332,8 +329,9 @@ export default function Home() {
           >
             Close
           </Button>
-        </Box>
-      </Modal>
+        </DialogContent>
+        
+      </Dialog>
 
       {/* notification handling */}
       <Snackbar
