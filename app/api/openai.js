@@ -46,6 +46,11 @@ export async function getRecommendations() {
       console.error("No response content received from OpenAI.")
       return "No recommendations available."
     }
+
+    // removes weird markdown formatting
+    const cleanedResponse = response
+      .replace(/\*Blurb:\*/g, "")
+      .replace(/\*/g, "")
   
-    return response
+    return cleanedResponse
 }

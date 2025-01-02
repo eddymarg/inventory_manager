@@ -8,6 +8,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions} from "@mui/material"
 import { Camera } from "react-camera-pro"
 import Header from './components/Header';
 import { getRecommendations } from "./api/openai";
+import { formatRecommendations } from "./api/responseFormat";
 
 export default function Home() {
   const [inventory, setInventory] = useState([]) // sets inventory array
@@ -151,7 +152,8 @@ export default function Home() {
     try {
       const response = await getRecommendations()
       console.log("Book Recommendations:", recommendations)
-      setRecommendations(response)
+      const formattedRecs = formatRecommendations(response)
+      setRecommendations(formattedRecs)
       setOpenReccModal(true)
     } catch(error) {
       console.error("Error fetching recommendations:", error)
