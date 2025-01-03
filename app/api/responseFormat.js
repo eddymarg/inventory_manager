@@ -10,7 +10,7 @@ export function formatRecommendations(response) {
                 <Typography 
                     key={index} 
                     variant="h6" 
-                    component="h2"
+                    component="span"
                     style={{ fontWeight: "bold", fontSize: "1.25rem" }}>
                     {line}
                 </Typography>
