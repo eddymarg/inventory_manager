@@ -327,7 +327,7 @@ export default function Home() {
             variant="contained"
             color="secondary"
             onClick={handleReccClose}
-            style={{ marginTop: "15px" }}
+            style={{ marginTop: "20px" }}
           >
             Close
           </Button>

@@ -9,19 +9,14 @@ export function formatRecommendations(response) {
             return (
                 <Typography 
                     key={index} 
-                    variant="h6" 
-                    component="span"
-                    style={{ fontWeight: "bold", fontSize: "1.25rem" }}>
-                    {line}
-                </Typography>
-            )
-        } else if (line.startsWith("Why it's a great fit:")) {
-            return (
-                <Typography 
-                    key={index} 
                     variant="body1" 
                     component="span"
-                    style={{ fontWeight: "bold", fontSize: "1rem"}}>
+                    style={{ 
+                        display: "block", 
+                        fontWeight: "bold", 
+                        fontSize: "1.25rem",
+                        fontFamily: "'Roboto',sans-serif",
+                        marginTop: "1rem" }}>
                     {line}
                 </Typography>
             )
@@ -31,7 +26,10 @@ export function formatRecommendations(response) {
                     key={index} 
                     variant="body1" 
                     component="span"
-                    style={{ fontSize: "1rem" }}>
+                    style={{ 
+                        fontSize: "1rem",
+                        fontFamily: "'Roboto',sans-serif", 
+                    }}>
                     {line}
                 </Typography>
             );

@@ -14,6 +14,8 @@ Make sure you meet these criterias:
 2. State the title of the new book.
 3. Add basic blurb of book.
 4. explain why it would be a great fit for them.
+
+separate the blurb and why it's a great fit by putting the paragraphs on new lines
 `
 export async function getRecommendations() {
     const booksRef = collection(firestore, "inventory") // Adjust the path to your Firestore collection name
@@ -50,6 +52,7 @@ export async function getRecommendations() {
     // removes weird markdown formatting
     const cleanedResponse = response
       .replace(/\*Blurb:\*/g, "")
+      .replace(/\*Why it's a great fit:\*/g, "")
       .replace(/\*/g, "")
   
     return cleanedResponse
