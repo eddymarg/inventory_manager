@@ -19,7 +19,8 @@
     "openai": "^4.77.0",
     "react": "^18",
     "react-camera-pro": "^1.4.0",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "shimmer-effects-react": "^1.0.4"
   },
   "devDependencies": {
     "eslint": "^8",

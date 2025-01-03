@@ -2,13 +2,14 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from 'react'
 import { firestore, auth } from '@/firebase'
-import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button } from '@mui/material';
+import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button, autocompleteClasses } from '@mui/material';
 import { collection, query, getDocs, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore"
 import { Dialog, DialogTitle, DialogContent, DialogActions} from "@mui/material"
 import { Camera } from "react-camera-pro"
 import Header from './components/Header';
 import { getRecommendations } from "./api/openai";
 import { formatRecommendations } from "./api/responseFormat";
+import MagicBtn from "./components/glimmerBtn";
 
 export default function Home() {
   const [inventory, setInventory] = useState([]) // sets inventory array
@@ -371,7 +372,7 @@ export default function Home() {
               backgroundColor: '#6C584C',
               ':hover': {
                 backgroundColor: '#A98467',
-              }
+              },
             }}
             onClick={()=>{
             handleOpen()
@@ -384,25 +385,16 @@ export default function Home() {
               backgroundColor: '#6C584C',
               ':hover': {
                 backgroundColor: '#A98467',
-              }
+              },
             }}
             onClick={handleOpenPhotoModal}
           >
             Add Item by Photo
           </Button>
-          <Button 
-            variant="contained" 
-            sx={{ 
-              backgroundColor: '#6C584C',
-              ':hover': {
-                backgroundColor: '#A98467',
-              }
-            }}
-            onClick={()=>{
-            handleReccOpen()
-          }}>
-            Get Book Recommendations
-          </Button>
+          <MagicBtn
+            variant="contained"
+            onClick={handleReccOpen}
+          />
         </Stack>
       </Box>
 
