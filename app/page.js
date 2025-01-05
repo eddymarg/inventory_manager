@@ -324,14 +324,28 @@ export default function Home() {
             }}>
             {recommendations}
           </Typography>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={handleReccClose}
-            style={{ marginTop: "20px" }}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+            }}
           >
-            Close
-          </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleReccClose}
+              sx={{ 
+                marginTop: "40px",
+                backgroundColor: "#6C584C",
+                ":hover": {
+                  backgroundColor: '#A98467',
+                },
+              }}
+              
+            >
+              Close
+            </Button>
+          </div>
         </DialogContent>
         
       </Dialog>
