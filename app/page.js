@@ -1,15 +1,15 @@
 'use client'
-import Image from "next/image";
 import { useState, useEffect, useRef } from 'react'
-import { firestore, auth } from '@/firebase'
-import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button, autocompleteClasses } from '@mui/material';
-import { collection, query, getDocs, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore"
-import { Dialog, DialogTitle, DialogContent, DialogActions} from "@mui/material"
+import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent } from "@mui/material"
 import { Camera } from "react-camera-pro"
 import Header from './components/Header';
 import { getRecommendations } from "./api/openai";
 import { formatRecommendations } from "./api/responseFormat";
 import MagicBtn from "./components/glimmerBtn";
+import { addItem, removeItem, updateInventory, deleteItem } from "./components/inventoryActions"
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 export default function Home() {
   const [inventory, setInventory] = useState([]) // sets inventory array
@@ -26,71 +26,10 @@ export default function Home() {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success') // success, error, warning, info
   const [openReccModal, setOpenReccModal] = useState(false);
   const [recommendations, setRecommendations] = useState("")
- 
-  // need to be async, because if it blocks while fetching site freezes
-  const updateInventory = async () => {
-    // snapshot of collection through query
-    const snapshot = query(collection(firestore, 'inventory'))
-    const docs = await getDocs(snapshot)
-    const inventoryList = []
-    docs.forEach((doc) => {
-      inventoryList.push({
-        name: doc.id,
-        ...doc.data(),
-      })
-    })
-    setInventory(inventoryList)
-  }
-
-  // helper function to remove items
-  const removeItem = async (item) => {
-    const docRef = doc(collection(firestore, 'inventory'), item)
-    const docSnap = await getDoc(docRef)
-
-    if(docSnap.exists()){
-      const { quantity, ...existingData } = docSnap.data()
-      if (quantity === 1) {
-        await deleteDoc(docRef)
-      } else {
-        await setDoc(docRef, {quantity: quantity - 1, image: existingData.image }, { merge: true})
-      }
-    }
-
-    await updateInventory()
-  }
-
-  // helper function to add items
-  // asynchronous function that takes in item (name of item you wanna add) 
-  // and image (optional parameter for item image. defaults to null if not provided)
-  const addItem = async (item, image = null) => {
-    // reference to document in Firestore
-    // collection(firestore, 'inventory') refers to inventory collection
-    // item is the document name within the collection/ item name
-    const docRef = doc(collection(firestore, 'inventory'), item)
-    // getDoc(docRef) retrieves doc from firestore at reference docRef
-    // await is needed because Firestore is asynchronous and takes time so function should wait for data
-    const docSnap = await getDoc(docRef)
-
-    if(docSnap.exists()){
-      // destructures data from docSnap.data(). separates quantity from rest of data
-      const { quantity, ...existingData } = docSnap.data()
-      // updates doc with new quantity and image
-      // quantity: quantity + 1 increments quantity
-      // image: image || existingData.image: if new image is given, use. if not use existing image. || ensures image field not lost during update
-      // merge: true tells firestore to merge new and existing data.
-      await setDoc(docRef, { quantity: quantity + 1, image: image || existingData.image }, { merge: true})
-    } else {
-      // if item doesn't exist in database, new doc created with the parameters
-      await setDoc(docRef, { quantity: 1, image })
-    }
-
-    // after adding/updating, calls updateInventory() to refresh displayed inventory list
-    await updateInventory()
-  }
 
   // runs update inventory when page loads
   useEffect(() => {
-    updateInventory()
+    updateInventory(setInventory)
   }, [])
 
   const handleOpen = () => setOpen(true)
@@ -101,7 +40,7 @@ export default function Home() {
 
   const handleAddItem = (itemName, image = null) => {
     if (itemName.trim()) {
-      addItem(itemName.trim(), image)
+      addItem(itemName.trim(), image, setInventory)
       handleSnackbarOpen('Item added successfully!', 'success')
       setItemName('')
       handleClose()
@@ -120,8 +59,8 @@ export default function Home() {
   const handleAddPhotoItem = () => {
     if (image && photoItemName.trim()) {
       // prompt for item name if needed or use default
-      console.log('Image URL: ', image)
-      addItem(photoItemName.trim(), image)
+      // console.log('Image URL: ', image)
+      addItem(photoItemName.trim(), image, setInventory)
       handleClosePhotoModal()
       handleSnackbarOpen('Photo added as new item!', 'success')
     } else {
@@ -463,7 +402,7 @@ export default function Home() {
                       backgroundColor: '#A98467',
                     }
                   }}
-                  onClick={()=> addItem(name)}
+                  onClick={()=> addItem(name, null, setInventory)}
                 >+</Button>
                 <Button 
                   variant="contained" 
@@ -473,8 +412,21 @@ export default function Home() {
                       backgroundColor: '#A98467',
                     }
                   }}
-                  onClick={()=> removeItem(name)}
+                  onClick={()=> removeItem(name, setInventory)}
                 >-</Button>
+                <Button 
+                  variant="contained" 
+                  sx={{ 
+                    backgroundColor: '#6C584C',
+                    ':hover': {
+                      backgroundColor: '#A98467',
+                    }
+                  }}
+                  onClick={()=> deleteItem(name, setInventory)}
+                >
+                  <FontAwesomeIcon icon={faTrash}/>
+                </Button>
+                
               </Stack>
             </Box>
           ))
