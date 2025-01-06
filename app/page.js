@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button } from '@mui/material';
+import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button, CircularProgress } from '@mui/material';
 import { Dialog, DialogTitle, DialogContent } from "@mui/material"
 import { Camera } from "react-camera-pro"
 import Header from './components/Header';
@@ -26,11 +26,16 @@ export default function Home() {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success') // success, error, warning, info
   const [openReccModal, setOpenReccModal] = useState(false);
   const [recommendations, setRecommendations] = useState("")
+  // const [loadingRecs, setLoadingRecs] = useState(false)
 
   // runs update inventory when page loads
   useEffect(() => {
     updateInventory(setInventory)
   }, [])
+
+  // useEffect(() => {
+  //   console.log("Loading status: ", loadingRecs)
+  // }, [loadingRecs])
 
   const handleOpen = () => setOpen(true)
   const handleClose = () => {
@@ -89,6 +94,7 @@ export default function Home() {
   }
 
   const handleReccOpen = async () => {
+    // setLoadingRecs(true)
     try {
       const response = await getRecommendations()
       console.log("Book Recommendations:", recommendations)
@@ -98,6 +104,9 @@ export default function Home() {
     } catch(error) {
       console.error("Error fetching recommendations:", error)
     }
+    // } finally {
+    //   setLoadingRecs(false)
+    // }
   }
 
   const handleReccClose = () => setOpenReccModal(false)
@@ -280,7 +289,6 @@ export default function Home() {
                   backgroundColor: '#A98467',
                 },
               }}
-              
             >
               Close
             </Button>
