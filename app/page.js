@@ -1,7 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button, CircularProgress } from '@mui/material';
-import { Dialog, DialogTitle, DialogContent } from "@mui/material"
+import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Camera } from "react-camera-pro"
 import Header from './components/Header';
 import { getRecommendations } from "./api/openai";
@@ -10,6 +9,7 @@ import MagicBtn from "./components/glimmerBtn";
 import { addItem, removeItem, updateInventory, deleteItem } from "./components/inventoryActions"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import './css/main.css'
 
 export default function Home() {
   const [inventory, setInventory] = useState([]) // sets inventory array
@@ -24,18 +24,17 @@ export default function Home() {
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success') // success, error, warning, info
+  /* RECOMMENDATIONS STATE VARS*/
   const [openReccModal, setOpenReccModal] = useState(false);
   const [recommendations, setRecommendations] = useState("")
-  // const [loadingRecs, setLoadingRecs] = useState(false)
+  /* confirmation close STATE VARS*/
+  const [confirmMsg, setConfirmMsg] = useState(false)
+
 
   // runs update inventory when page loads
   useEffect(() => {
     updateInventory(setInventory)
   }, [])
-
-  // useEffect(() => {
-  //   console.log("Loading status: ", loadingRecs)
-  // }, [loadingRecs])
 
   const handleOpen = () => setOpen(true)
   const handleClose = () => {
@@ -94,7 +93,6 @@ export default function Home() {
   }
 
   const handleReccOpen = async () => {
-    // setLoadingRecs(true)
     try {
       const response = await getRecommendations()
       console.log("Book Recommendations:", recommendations)
@@ -104,12 +102,20 @@ export default function Home() {
     } catch(error) {
       console.error("Error fetching recommendations:", error)
     }
-    // } finally {
-    //   setLoadingRecs(false)
-    // }
   }
 
-  const handleReccClose = () => setOpenReccModal(false)
+  const handleReccClose = () => {
+    setConfirmMsg(true)
+  }
+
+  const handleConfirmClose = () => {
+    setOpenReccModal(false)
+    setConfirmMsg(false)
+  }
+
+  const handleCancelClose = () => {
+    setConfirmMsg(false)
+  }
 
   return (
     <Box 
@@ -278,23 +284,55 @@ export default function Home() {
               justifyContent: "center",
             }}
           >
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={handleReccClose}
-              sx={{ 
-                marginTop: "40px",
-                backgroundColor: "#6C584C",
-                ":hover": {
-                  backgroundColor: '#A98467',
-                },
-              }}
+            <Stack
+              direction="row" 
+              spacing={1}
+              justifyContent="center"
+              marginTop={4}
             >
-              Close
-            </Button>
+              <Button
+                variant="contained"
+                onClick={handleReccClose}
+                className='generalBtn'
+              >
+                Close
+              </Button>
+              <Button
+                variant="contained"
+                // onClick={handleReccClose}
+                className='generalBtnLite'
+              >
+                Save
+              </Button>
+            </Stack>
           </div>
         </DialogContent>
-        
+      </Dialog>
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmMsg}
+        onClose={handleCancelClose}
+        aria-labelledby="confirm-close-title"
+        aria-describedby="confirm-close-description"
+      >
+        <DialogTitle id="confirm-close-title" className='centeredTxt'>Book Recommendations Unsaved</DialogTitle>
+        <DialogContent>
+          <Typography id="confirm-close-description" className='centeredTxt'>
+            Are you sure you want to close this window? Your book recommendations will be deleted once closed.
+          </Typography>
+        </DialogContent>
+        <DialogActions
+          sx={{
+            justifyContent:"center"
+          }}
+        >
+          <Button onClick={handleCancelClose} className='darkBrownTxt'>
+              Cancel
+          </Button>
+          <Button onClick={handleConfirmClose} className='generalBtn' variant="contained">
+            Close
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* notification handling */}
@@ -367,9 +405,6 @@ export default function Home() {
           display="flex"
           alignItems="center" 
           justifyContent="center">
-          {/* <Typography variant="h5" color='#333'>
-            Inventory Items
-          </Typography> */}
         </Box>
       <Stack width="100vw" height="50vh" spacing={2} overflow="auto">
         {

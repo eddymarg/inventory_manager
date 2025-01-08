@@ -1,0 +1,32 @@
+/* COLORS */
+.darkBrownTxt {
+    color: #2c2017;
+}
+
+.generalBtn {
+    background-color: #6C584C;
+    color: white;
+}
+
+.generalBtn:hover {
+    background-color: #A98467;
+}
+
+.generalBtnLite {
+    background-color: #e5d9d0;
+    color: #2c2017;
+}
+
+.generalBtnLite:hover {
+    background-color: #A98467;
+    color: white;
+}
+
+.glowingRed {
+    box-shadow: 0 0 10px red;
+}
+
+/* SPACING */
+.centeredTxt {
+    text-align: center;
+}
