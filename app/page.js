@@ -1,11 +1,16 @@
 'use client'
-import Image from "next/image";
 import { useState, useEffect, useRef } from 'react'
-import { firestore, auth } from '@/firebase'
-import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button } from '@mui/material';
-import { collection, query, getDocs, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore"
+import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Camera } from "react-camera-pro"
 import Header from './components/Header';
+import { getRecommendations } from "./api/openai";
+import { formatRecommendations } from "./api/responseFormat";
+import { saveRec } from './components/saveRec';
+import MagicBtn from "./components/glimmerBtn";
+import { addItem, removeItem, updateInventory, deleteItem } from "./components/inventoryActions"
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import './css/main.css'
 
 export default function Home() {
   const [inventory, setInventory] = useState([]) // sets inventory array
@@ -20,71 +25,17 @@ export default function Home() {
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success') // success, error, warning, info
- 
-  // need to be async, because if it blocks while fetching site freezes
-  const updateInventory = async () => {
-    // snapshot of collection through query
-    const snapshot = query(collection(firestore, 'inventory'))
-    const docs = await getDocs(snapshot)
-    const inventoryList = []
-    docs.forEach((doc) => {
-      inventoryList.push({
-        name: doc.id,
-        ...doc.data(),
-      })
-    })
-    setInventory(inventoryList)
-  }
+  /* RECOMMENDATIONS STATE VARS*/
+  const [openReccModal, setOpenReccModal] = useState(false);
+  const [recommendations, setRecommendations] = useState("")
+  const [rawRec, setRawRec] = useState("")
+  /* confirmation close STATE VARS*/
+  const [confirmMsg, setConfirmMsg] = useState(false)
 
-  // helper function to remove items
-  const removeItem = async (item) => {
-    const docRef = doc(collection(firestore, 'inventory'), item)
-    const docSnap = await getDoc(docRef)
-
-    if(docSnap.exists()){
-      const { quantity, ...existingData } = docSnap.data()
-      if (quantity === 1) {
-        await deleteDoc(docRef)
-      } else {
-        await setDoc(docRef, {quantity: quantity - 1, image: existingData.image }, { merge: true})
-      }
-    }
-
-    await updateInventory()
-  }
-
-  // helper function to add items
-  // asynchronous function that takes in item (name of item you wanna add) 
-  // and image (optional parameter for item image. defaults to null if not provided)
-  const addItem = async (item, image = null) => {
-    // reference to document in Firestore
-    // collection(firestore, 'inventory') refers to inventory collection
-    // item is the document name within the collection/ item name
-    const docRef = doc(collection(firestore, 'inventory'), item)
-    // getDoc(docRef) retrieves doc from firestore at reference docRef
-    // await is needed because Firestore is asynchronous and takes time so function should wait for data
-    const docSnap = await getDoc(docRef)
-
-    if(docSnap.exists()){
-      // destructures data from docSnap.data(). separates quantity from rest of data
-      const { quantity, ...existingData } = docSnap.data()
-      // updates doc with new quantity and image
-      // quantity: quantity + 1 increments quantity
-      // image: image || existingData.image: if new image is given, use. if not use existing image. || ensures image field not lost during update
-      // merge: true tells firestore to merge new and existing data.
-      await setDoc(docRef, { quantity: quantity + 1, image: image || existingData.image }, { merge: true})
-    } else {
-      // if item doesn't exist in database, new doc created with the parameters
-      await setDoc(docRef, { quantity: 1, image })
-    }
-
-    // after adding/updating, calls updateInventory() to refresh displayed inventory list
-    await updateInventory()
-  }
 
   // runs update inventory when page loads
   useEffect(() => {
-    updateInventory()
+    updateInventory(setInventory)
   }, [])
 
   const handleOpen = () => setOpen(true)
@@ -95,7 +46,7 @@ export default function Home() {
 
   const handleAddItem = (itemName, image = null) => {
     if (itemName.trim()) {
-      addItem(itemName.trim(), image)
+      addItem(itemName.trim(), image, setInventory)
       handleSnackbarOpen('Item added successfully!', 'success')
       setItemName('')
       handleClose()
@@ -114,8 +65,8 @@ export default function Home() {
   const handleAddPhotoItem = () => {
     if (image && photoItemName.trim()) {
       // prompt for item name if needed or use default
-      console.log('Image URL: ', image)
-      addItem(photoItemName.trim(), image)
+      // console.log('Image URL: ', image)
+      addItem(photoItemName.trim(), image, setInventory)
       handleClosePhotoModal()
       handleSnackbarOpen('Photo added as new item!', 'success')
     } else {
@@ -141,6 +92,50 @@ export default function Home() {
   const handleSnackbarClose = (event, reason) => {
     if (reason === 'clickaway') return;
     setSnackbarOpen(false);
+  }
+
+  const handleReccOpen = async () => {
+    try {
+      const response = await getRecommendations()
+      console.log("Book Recommendations:", response)
+      setRawRec(response)
+      const formattedRecs = formatRecommendations(response)
+      setRecommendations(formattedRecs)
+      setOpenReccModal(true)
+    } catch(error) {
+      console.error("Error fetching recommendations:", error)
+    }
+  }
+
+  const handleSaveRec = async () => {
+    try {
+      if (!rawRec) {
+        handleSnackbarOpen("No recommendations to save!", "error")
+        return;
+      }
+      const result = await saveRec(rawRec)
+      if (result.success) {
+        handleSnackbarOpen(result.message, 'success')
+      } else {
+        handleSnackbarOpen(result.message, 'error')
+      }
+    } catch (error) {
+      console.error("Error saving recommendations:", error)
+      handleSnackbarOpen("Failed to save recommendations", "error")
+    }
+  }
+
+  const handleReccClose = () => {
+    setConfirmMsg(true)
+  }
+
+  const handleConfirmClose = () => {
+    setOpenReccModal(false)
+    setConfirmMsg(false)
+  }
+
+  const handleCancelClose = () => {
+    setConfirmMsg(false)
   }
 
   return (
@@ -287,6 +282,80 @@ export default function Home() {
         </Box>
       </Modal>
 
+      {/* Recommendations Modal */}
+      <Dialog 
+        open={openReccModal} 
+        onClose={handleReccClose}
+        scroll="paper"
+        aria-labelledby="scroll-dialog-title"
+        aria-describedby="scroll-dialog-description"
+      >
+        <DialogTitle id="scroll-dialog-title">Book Recommendations</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body1" 
+            style={{ 
+              marginTop: "10px", 
+              whiteSpace: "pre-line",
+            }}>
+            {recommendations}
+          </Typography>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <Stack
+              direction="row" 
+              spacing={1}
+              justifyContent="center"
+              marginTop={4}
+            >
+              <Button
+                variant="contained"
+                onClick={handleReccClose}
+                className='generalBtn'
+              >
+                Close
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleSaveRec}
+                className='generalBtnLite'
+              >
+                Save
+              </Button>
+            </Stack>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmMsg}
+        onClose={handleCancelClose}
+        aria-labelledby="confirm-close-title"
+        aria-describedby="confirm-close-description"
+      >
+        <DialogTitle id="confirm-close-title" className='centeredTxt'>Book Recommendations Unsaved</DialogTitle>
+        <DialogContent>
+          <Typography id="confirm-close-description" className='centeredTxt'>
+            Are you sure you want to close this window? Your book recommendations will be deleted once closed.
+          </Typography>
+        </DialogContent>
+        <DialogActions
+          sx={{
+            justifyContent:"center"
+          }}
+        >
+          <Button onClick={handleCancelClose} className='darkBrownTxt'>
+              Cancel
+          </Button>
+          <Button onClick={handleConfirmClose} className='generalBtn' variant="contained">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* notification handling */}
       <Snackbar
         open={snackbarOpen}
@@ -323,7 +392,7 @@ export default function Home() {
               backgroundColor: '#6C584C',
               ':hover': {
                 backgroundColor: '#A98467',
-              }
+              },
             }}
             onClick={()=>{
             handleOpen()
@@ -336,12 +405,16 @@ export default function Home() {
               backgroundColor: '#6C584C',
               ':hover': {
                 backgroundColor: '#A98467',
-              }
+              },
             }}
             onClick={handleOpenPhotoModal}
           >
             Add Item by Photo
           </Button>
+          <MagicBtn
+            variant="contained"
+            onClick={handleReccOpen}
+          />
         </Stack>
       </Box>
 
@@ -353,9 +426,6 @@ export default function Home() {
           display="flex"
           alignItems="center" 
           justifyContent="center">
-          {/* <Typography variant="h5" color='#333'>
-            Inventory Items
-          </Typography> */}
         </Box>
       <Stack width="100vw" height="50vh" spacing={2} overflow="auto">
         {
@@ -396,7 +466,7 @@ export default function Home() {
                       backgroundColor: '#A98467',
                     }
                   }}
-                  onClick={()=> addItem(name)}
+                  onClick={()=> addItem(name, null, setInventory)}
                 >+</Button>
                 <Button 
                   variant="contained" 
@@ -406,8 +476,21 @@ export default function Home() {
                       backgroundColor: '#A98467',
                     }
                   }}
-                  onClick={()=> removeItem(name)}
+                  onClick={()=> removeItem(name, setInventory)}
                 >-</Button>
+                <Button 
+                  variant="contained" 
+                  sx={{ 
+                    backgroundColor: '#6C584C',
+                    ':hover': {
+                      backgroundColor: '#A98467',
+                    }
+                  }}
+                  onClick={()=> deleteItem(name, setInventory)}
+                >
+                  <FontAwesomeIcon icon={faTrash}/>
+                </Button>
+                
               </Stack>
             </Box>
           ))

@@ -1,0 +1,41 @@
+.magic-btn {
+    background: linear-gradient(45deg, #6C584C, #A98467);
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 5px;
+    font-size: 16px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.magic-btn:hover {
+    background: linear-gradient(45deg, #A98467, #6C584C);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+}
+
+.magic-btn:before {
+    content: "";
+    position: absolute;
+    width: 200%;
+    height: 50%;
+    background: rgba(255,255,255,0.1);
+    filter: blur(5px);
+    transform: translateY(-50%) rotate(30deg);
+    animation: glimmer 10s infinite;
+}
+
+@keyframes glimmer {
+    0% {
+        left: -100%;
+    }
+    50% {
+        left: 100%;
+    }
+    100% {
+        left: -100%;
+    }
+}
