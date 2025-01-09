@@ -5,6 +5,7 @@ import { Camera } from "react-camera-pro"
 import Header from './components/Header';
 import { getRecommendations } from "./api/openai";
 import { formatRecommendations } from "./api/responseFormat";
+import { saveRec } from './components/saveRec';
 import MagicBtn from "./components/glimmerBtn";
 import { addItem, removeItem, updateInventory, deleteItem } from "./components/inventoryActions"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -27,6 +28,7 @@ export default function Home() {
   /* RECOMMENDATIONS STATE VARS*/
   const [openReccModal, setOpenReccModal] = useState(false);
   const [recommendations, setRecommendations] = useState("")
+  const [rawRec, setRawRec] = useState("")
   /* confirmation close STATE VARS*/
   const [confirmMsg, setConfirmMsg] = useState(false)
 
@@ -95,12 +97,31 @@ export default function Home() {
   const handleReccOpen = async () => {
     try {
       const response = await getRecommendations()
-      console.log("Book Recommendations:", recommendations)
+      console.log("Book Recommendations:", response)
+      setRawRec(response)
       const formattedRecs = formatRecommendations(response)
       setRecommendations(formattedRecs)
       setOpenReccModal(true)
     } catch(error) {
       console.error("Error fetching recommendations:", error)
+    }
+  }
+
+  const handleSaveRec = async () => {
+    try {
+      if (!rawRec) {
+        handleSnackbarOpen("No recommendations to save!", "error")
+        return;
+      }
+      const result = await saveRec(rawRec)
+      if (result.success) {
+        handleSnackbarOpen(result.message, 'success')
+      } else {
+        handleSnackbarOpen(result.message, 'error')
+      }
+    } catch (error) {
+      console.error("Error saving recommendations:", error)
+      handleSnackbarOpen("Failed to save recommendations", "error")
     }
   }
 
@@ -299,7 +320,7 @@ export default function Home() {
               </Button>
               <Button
                 variant="contained"
-                // onClick={handleReccClose}
+                onClick={handleSaveRec}
                 className='generalBtnLite'
               >
                 Save
