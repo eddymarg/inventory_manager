@@ -34,9 +34,9 @@ export default function Home() {
   const [rawRec, setRawRec] = useState("")
   /* confirmation close STATE VARS*/
   const [confirmMsg, setConfirmMsg] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
   /* saved recommendations modal */
   const [openSaveModal, setOpenSaveModal] = useState(false);
-  const [expanded, setExpanded] = useState('panel1')
 
 
   // runs update inventory when page loads
@@ -121,6 +121,8 @@ export default function Home() {
       }
       const result = await saveRec(rawRec)
       if (result.success) {
+        setIsSaved(true)
+        console.log("isSaved set to true")
         handleSnackbarOpen(result.message, 'success')
       } else {
         handleSnackbarOpen(result.message, 'error')
@@ -132,7 +134,12 @@ export default function Home() {
   }
 
   const handleReccClose = () => {
-    setConfirmMsg(true)
+    console.log("isSaved value when trying to close:", isSaved)
+    if (isSaved) {
+      setOpenReccModal(false)
+    } else {
+      setConfirmMsg(true)
+    }
   }
 
   const handleSaveOpen = () => {
@@ -144,16 +151,14 @@ export default function Home() {
   }
 
   const handleConfirmClose = () => {
+    console.log("Closing recommendations modal and resetting isSaved")
     setOpenReccModal(false)
     setConfirmMsg(false)
+    setIsSaved(false)
   }
 
   const handleCancelClose = () => {
     setConfirmMsg(false)
-  }
-
-  const handleChange = (panel) => (event, isExpanded) => {
-    setExpanded(isExpanded ? panel : false)
   }
 
   return (
