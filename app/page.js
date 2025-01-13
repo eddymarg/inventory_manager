@@ -13,7 +13,6 @@ import { addItem, removeItem, updateInventory, deleteItem } from "./components/i
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faBook } from '@fortawesome/free-solid-svg-icons';
 import './css/main.css'
-import { Save } from '@mui/icons-material';
 
 export default function Home() {
   const [inventory, setInventory] = useState([]) // sets inventory array
@@ -121,9 +120,8 @@ export default function Home() {
       }
       const result = await saveRec(rawRec)
       if (result.success) {
-        setIsSaved(true)
-        console.log("isSaved set to true")
         handleSnackbarOpen(result.message, 'success')
+        setIsSaved(true)
       } else {
         handleSnackbarOpen(result.message, 'error')
       }
@@ -134,7 +132,6 @@ export default function Home() {
   }
 
   const handleReccClose = () => {
-    console.log("isSaved value when trying to close:", isSaved)
     if (isSaved) {
       setOpenReccModal(false)
     } else {
@@ -151,7 +148,6 @@ export default function Home() {
   }
 
   const handleConfirmClose = () => {
-    console.log("Closing recommendations modal and resetting isSaved")
     setOpenReccModal(false)
     setConfirmMsg(false)
     setIsSaved(false)
