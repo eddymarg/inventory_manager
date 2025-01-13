@@ -1,16 +1,19 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Snackbar, Alert, Box, Modal, Typography, Stack, TextField, Button, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Tooltip, Zoom, Accordion, AccordionSummary, AccordionDetails} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Camera } from "react-camera-pro"
 import Header from './components/Header';
 import { getRecommendations } from "./api/openai";
 import { formatRecommendations } from "./api/responseFormat";
+import SaveRecDisplay from './components/saveRecDisplay';
 import { saveRec } from './components/saveRec';
 import MagicBtn from "./components/glimmerBtn";
 import { addItem, removeItem, updateInventory, deleteItem } from "./components/inventoryActions"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faBook } from '@fortawesome/free-solid-svg-icons';
 import './css/main.css'
+import { Save } from '@mui/icons-material';
 
 export default function Home() {
   const [inventory, setInventory] = useState([]) // sets inventory array
@@ -31,6 +34,9 @@ export default function Home() {
   const [rawRec, setRawRec] = useState("")
   /* confirmation close STATE VARS*/
   const [confirmMsg, setConfirmMsg] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
+  /* saved recommendations modal */
+  const [openSaveModal, setOpenSaveModal] = useState(false);
 
 
   // runs update inventory when page loads
@@ -115,6 +121,8 @@ export default function Home() {
       }
       const result = await saveRec(rawRec)
       if (result.success) {
+        setIsSaved(true)
+        console.log("isSaved set to true")
         handleSnackbarOpen(result.message, 'success')
       } else {
         handleSnackbarOpen(result.message, 'error')
@@ -126,12 +134,27 @@ export default function Home() {
   }
 
   const handleReccClose = () => {
-    setConfirmMsg(true)
+    console.log("isSaved value when trying to close:", isSaved)
+    if (isSaved) {
+      setOpenReccModal(false)
+    } else {
+      setConfirmMsg(true)
+    }
+  }
+
+  const handleSaveOpen = () => {
+    setOpenSaveModal(true);
+  }
+
+  const handleSaveClose = () => {
+    setOpenSaveModal(false)
   }
 
   const handleConfirmClose = () => {
+    console.log("Closing recommendations modal and resetting isSaved")
     setOpenReccModal(false)
     setConfirmMsg(false)
+    setIsSaved(false)
   }
 
   const handleCancelClose = () => {
@@ -356,6 +379,17 @@ export default function Home() {
         </DialogActions>
       </Dialog>
 
+      {/* Saved Recommendation Modal */}
+      <Dialog
+        open={openSaveModal} 
+        onClose={handleSaveClose}
+        scroll="paper"
+        aria-labelledby="scroll-dialog-title"
+        aria-describedby="scroll-dialog-description"
+      >
+        <SaveRecDisplay />
+      </Dialog>
+
       {/* notification handling */}
       <Snackbar
         open={snackbarOpen}
@@ -386,6 +420,22 @@ export default function Home() {
           display="flex"
           justifyContent="center"
         >
+          <Tooltip 
+            title="Saved Recommendations" 
+            placement="top-start"
+            slots={{
+              transition: Zoom,
+            }}
+          >
+            <Button>
+              <FontAwesomeIcon 
+                icon={ faBook } 
+                size="xl" 
+                className="darkBrownTxt"
+                onClick={ handleSaveOpen }
+              />
+            </Button>
+          </Tooltip>
           <Button 
             variant="contained" 
             sx={{ 
