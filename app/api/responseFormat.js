@@ -1,8 +1,10 @@
+/* formats response from openai */
 import React from "react";
 import { Typography } from "@mui/material";
 
 export function formatRecommendations(response) {
-    const lines = response.split("\n").filter(line => line.trim() !== "")
+    const formattedResponse = response.replace(/"/g, " ");
+    const lines = formattedResponse.split("\n").filter(line => line.trim() !== "")
 
     return lines.map((line, index) => {
         if (/^\d+\./.test(line)) {

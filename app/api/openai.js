@@ -1,7 +1,7 @@
 // import { NextResponse } from "next/server";
 "use server";
 import OpenAI from 'openai'
-import { getFirestore, collection, getDocs} from "firebase/firestore"
+import { collection, getDocs} from "firebase/firestore"
 import { firestore } from "../../firebase";
 import dotenv from "dotenv"
 dotenv.config()
